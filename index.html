@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenArt | Naturismo Computacional</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Poppins:wght@200;300;400;600&display=swap"
+        rel="stylesheet">
+    <!-- p5.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <style>
+        :root {
+            --bg-deep: #0a0a0b;
+            --accent: #d97757;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f0f0f0;
+            --text-muted: #a0a0a5;
+        }
+
+        /* ... existing styles ... */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            overflow-y: auto;
+            min-height: 100vh;
+            width: 100vw;
+        }
+
+        #canvas-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        main {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 5vh 5vw;
+        }
+
+        header {
+            max-width: 600px;
+        }
+
+        h1 {
+            font-family: 'Lora', serif;
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            font-weight: 400;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+
+        .author-tag {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            letter-spacing: 0.1em;
+            text-transform: none;
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        .philosophy-brief {
+            font-family: 'Lora', serif;
+            font-style: italic;
+            color: var(--text-muted);
+            max-width: 400px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+            margin-bottom: 2rem;
+            max-width: 1000px;
+        }
+
+        .art-link {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            padding: 2rem;
+            border-radius: 4px;
+            width: 100%;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 180px;
+        }
+
+        .art-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: var(--accent);
+            transition: left 0.4s ease;
+        }
+
+        .art-link:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent);
+        }
+
+        .art-link:hover::before {
+            left: 0;
+        }
+
+        .art-link h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .art-link p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* Slices Panel */
+        .slices-panel {
+            position: fixed;
+            right: 5vw;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 2rem;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            width: 250px;
+            z-index: 100;
+        }
+
+        .slice-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .slice-group label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 2px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+            margin-top: -5px;
+        }
+
+        .controls-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 0.5rem;
+        }
+
+        @media (max-width: 900px) {
+            main {
+                overflow-y: auto;
+                justify-content: flex-start;
+                gap: 4rem;
+            }
+
+            .gallery {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .slices-panel {
+                position: relative;
+                top: 0;
+                transform: none;
+                width: 100%;
+                margin-top: 2rem;
+                right: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main>
+        <header>
+            <div class="subtitle">GenArt Studio <span class="author-tag">by VilBeer</span></div>
+            <h1>Naturismo<br>Computacional</h1>
+            <p class="philosophy-brief">
+                Donde la lógica binaria se encuentra con la evolución orgánica. Una colección de realidades generadas
+                mediante algoritmos.
+            </p>
+        </header>
+
+        <section class="gallery">
+            <a href="art/falling_circles.html" class="art-link">
+                <h3>Falling Circles</h3>
+                <p>Simulación de masa, gravedad y los rastros efímeros de objetos en caída.</p>
+            </a>
+            <a href="art/cosmic_orbits.html" class="art-link">
+                <h3>Cosmic Orbits</h3>
+                <p>Interacción de N-cuerpos mapeando la belleza caótica de la mecánica planetaria.</p>
+            </a>
+            <a href="art/flow_fields.html" class="art-link">
+                <h3>Flow Fields</h3>
+                <p>Navegación por ríos invisibles de ruido de Perlin a través de visualización vectorial.</p>
+            </a>
+            <!-- Nuevas Obras -->
+            <a href="art/organic_growth.html" class="art-link">
+                <h3>Organic Growth</h3>
+                <p>Simulación de crecimiento vegetal con caminos aleatorios y ciclos de vida.</p>
+            </a>
+            <a href="art/cubisms.html" class="art-link">
+                <h3>Cubisms</h3>
+                <p>Flujos de luz geométrica siguiendo trayectorias rectangulares en una malla urbana.</p>
+            </a>
+            <a href="art/water_explosion.html" class="art-link">
+                <h3>Water Explosion</h3>
+                <p>Dinámica cíclica de dispersión y atracción gravitatoria de gotas de agua.</p>
+            </a>
+        </section>
+    </main>
+
+    <div class="slices-panel">
+        <div class="controls-title">PARÁMETROS DEL VACÍO</div>
+        <div class="slice-group">
+            <label>Caos (Escala de Ruido)</label>
+            <input type="range" id="chaosSlice" min="0.001" max="0.02" step="0.001" value="0.005">
+        </div>
+        <div class="slice-group">
+            <label>Entropía (Velocidad)</label>
+            <input type="range" id="speedSlice" min="0.1" max="3" step="0.1" value="1">
+        </div>
+        <div class="slice-group">
+            <label>Densidad (Partículas)</label>
+            <input type="range" id="densitySlice" min="100" max="2000" step="100" value="800">
+        </div>
+        <div class="slice-group">
+            <label>Fricción</label>
+            <input type="range" id="frictionSlice" min="0.8" max="0.99" step="0.01" value="0.95">
+        </div>
+    </div>
+
+    <script>
+        let particles = [];
+        let n = 800;
+        let noiseScale = 0.005;
+        let speed = 1;
+        let friction = 0.95;
+
+        // SLICES references
+        const chaosInput = document.getElementById('chaosSlice');
+        const speedInput = document.getElementById('speedSlice');
+        const densityInput = document.getElementById('densitySlice');
+        const frictionInput = document.getElementById('frictionSlice');
+
+        function setup() {
+            let canvas = createCanvas(windowWidth, windowHeight);
+            canvas.id('canvas-bg');
+            background(10, 10, 11);
+
+            initParticles();
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < n; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function draw() {
+            // Update params from Slices
+            noiseScale = parseFloat(chaosInput.value);
+            speed = parseFloat(speedInput.value);
+            friction = parseFloat(frictionInput.value);
+            let targetN = parseInt(densityInput.value);
+
+            // Dynamic density adjustment
+            if (particles.length < targetN) {
+                for (let i = 0; i < 10; i++) particles.push(new Particle());
+            } else if (particles.length > targetN) {
+                particles.splice(0, particles.length - targetN);
+            }
+
+            // Subtle fade for trails
+            background(10, 10, 11, 20);
+
+            for (let p of particles) {
+                p.update();
+                p.display();
+            }
+        }
+
+        class Particle {
+            constructor() {
+                this.init();
+            }
+
+            init() {
+                this.pos = createVector(random(width), random(height));
+                this.vel = createVector(0, 0);
+                this.acc = createVector(0, 0);
+                this.maxSpeed = random(1, 3);
+                this.h = random(20, 40); // Hue-ish base
+                this.opacity = random(50, 150);
+                this.size = random(0.5, 2);
+            }
+
+            update() {
+                // Perlin Noise Flow
+                let angle = noise(this.pos.x * noiseScale, this.pos.y * noiseScale, frameCount * 0.002) * TWO_PI * 2;
+                let force = p5.Vector.fromAngle(angle);
+                force.mult(0.1 * speed);
+
+                // Mouse interaction
+                let m = createVector(mouseX, mouseY);
+                let d = dist(this.pos.x, this.pos.y, m.x, m.y);
+                if (d < 150) {
+                    let repel = p5.Vector.sub(this.pos, m);
+                    repel.normalize();
+                    repel.mult(0.5);
+                    this.acc.add(repel);
+                }
+
+                this.acc.add(force);
+                this.vel.add(this.acc);
+                this.vel.limit(this.maxSpeed * speed);
+                this.pos.add(this.vel);
+                this.vel.mult(friction);
+                this.acc.mult(0);
+
+                // Boundary Wrap
+                if (this.pos.x < 0) this.pos.x = width;
+                if (this.pos.x > width) this.pos.x = 0;
+                if (this.pos.y < 0) this.pos.y = height;
+                if (this.pos.y > height) this.pos.y = 0;
+            }
+
+            display() {
+                noStroke();
+                // Subtle color shift based on velocity
+                fill(217, 119, 87, this.opacity); // Using var(--accent) #d97757
+                circle(this.pos.x, this.pos.y, this.size);
+            }
+        }
+
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+            background(10, 10, 11);
+        }
+    </script>
+</body>
+
+</html>

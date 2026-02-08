@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organic Growth | GenArt</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0a0a0b;
+            --sidebar-bg: rgba(15, 15, 17, 0.95);
+            --text-main: #f0f0f0;
+            --text-muted: #a0a0a5;
+            --accent: #7fb069;
+            /* Greenish accent for growth */
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-deep);
+            min-height: 100vh;
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .sidebar {
+            width: 320px;
+            flex-shrink: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(20px);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar h1 {
+            font-family: 'Lora', serif;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 32px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .control-section {
+            margin-bottom: 32px;
+        }
+
+        .control-section h3 {
+            font-size: 14px;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        .control-section h3::before {
+            content: '•';
+            color: var(--accent);
+            margin-right: 8px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            appearance: none;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .value-display {
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--accent);
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .theory-btn {
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: var(--text-muted);
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 11px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+
+        .theory-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .back-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 10px;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        /* Modal */
+        #theory-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .modal-content {
+            background: var(--sidebar-bg);
+            border: 1px solid var(--glass-border);
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <a href="../index.html" class="back-link">← Volver al Estudio</a>
+            <h1>Organic Growth</h1>
+            <div class="subtitle">Sinfonía de Clorofila</div>
+
+            <button class="theory-btn" onclick="toggleTheory(true)">Base Teórica</button>
+
+            <div class="control-section">
+                <h3>Crecimiento</h3>
+                <div class="control-group">
+                    <label>Velocidad de Crecimiento</label>
+                    <div class="slider-container">
+                        <input type="range" id="growthSpeed" min="0.5" max="5" step="0.1" value="2"
+                            oninput="updateParam('growthSpeed', this.value)">
+                        <span class="value-display" id="growthSpeed-value">2</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Densidad de Hierba</label>
+                    <div class="slider-container">
+                        <input type="range" id="density" min="1" max="10" step="1" value="5"
+                            oninput="updateParam('density', this.value)">
+                        <span class="value-display" id="density-value">5</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Curvatura (Caos)</label>
+                    <div class="slider-container">
+                        <input type="range" id="chaos" min="0" max="1" step="0.05" value="0.2"
+                            oninput="updateParam('chaos', this.value)">
+                        <span class="value-display" id="chaos-value">0.2</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Viento</h3>
+                <div class="control-group">
+                    <label>Fuerza de Brisa</label>
+                    <div class="slider-container">
+                        <input type="range" id="wind" min="0" max="1" step="0.05" value="0.3"
+                            oninput="updateParam('wind', this.value)">
+                        <span class="value-display" id="wind-value">0.3</span>
+                    </div>
+                </div>
+            </div>
+
+            <button
+                style="background: var(--accent); border:none; padding:12px; border-radius:6px; color:white; cursor:pointer;"
+                onclick="resetSketch()">🔄 Podar Campo</button>
+        </div>
+
+        <div class="canvas-area">
+            <div id="canvas-container"></div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="theory-modal">
+        <div class="modal-content">
+            <div class="close-modal" onclick="toggleTheory(false)">✕</div>
+            <h2 style="color: var(--accent); font-family: Lora; margin-bottom: 20px;">Organic Growth: Teoría</h2>
+            <p style="font-size: 14px; line-height: 1.6; color: var(--text-muted);">
+                Este algoritmo simula el crecimiento fototrópico de la vegetación. Cada brizna es un agente que "busca"
+                el sol (dirección ascendente) mientras se ve afectado por fluctuaciones aleatorias.
+            </p>
+            <ul style="margin-top: 20px; font-size: 13px; color: var(--text-muted); list-style-position: inside;">
+                <li><strong>Cadenas de Markhov:</strong> La dirección de cada segmento depende ligeramente del anterior
+                    mas una variación aleatoria.</li>
+                <li><strong>Viento Sinusoidal:</strong> Una función de tiempo periódica aplica una fuerza lateral para
+                    simular oscilación.</li>
+                <li><strong>Ciclos de Vida:</strong> Cuando la brizna alcanza una altura máxima o un tiempo de vida,
+                    detiene su crecimiento y comienza a oscilar.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let stalks = [];
+        let params = {
+            growthSpeed: 2,
+            density: 5,
+            chaos: 0.2,
+            wind: 0.3
+        };
+
+        function toggleTheory(show) {
+            document.getElementById('theory-modal').style.display = show ? 'flex' : 'none';
+        }
+
+        function updateParam(id, val) {
+            params[id] = parseFloat(val);
+            document.getElementById(`${id}-value`).innerText = val;
+        }
+
+        function setup() {
+            let container = document.getElementById('canvas-container');
+            let canvas = createCanvas(container.offsetWidth, container.offsetHeight);
+            canvas.parent('canvas-container');
+            resetSketch();
+        }
+
+        function resetSketch() {
+            background(5, 5, 7);
+            stalks = [];
+        }
+
+        function draw() {
+            background(5, 5, 7, 20);
+
+            // Spawn new growth
+            if (frameCount % Math.max(1, (11 - params.density)) == 0 && stalks.length < 500) {
+                stalks.push(new Stalk(random(width), height));
+            }
+
+            for (let s of stalks) {
+                s.update();
+                s.display();
+            }
+        }
+
+        class Stalk {
+            constructor(x, y) {
+                this.segments = [createVector(x, y)];
+                this.angle = -HALF_PI;
+                this.growing = true;
+                this.maxLen = random(100, 300);
+                this.windOffset = random(1000);
+            }
+
+            update() {
+                if (this.growing) {
+                    let last = this.segments[this.segments.length - 1];
+                    this.angle += random(-params.chaos, params.chaos);
+
+                    // Stay upwardish
+                    this.angle = lerp(this.angle, -HALF_PI, 0.1);
+
+                    let next = createVector(
+                        last.x + cos(this.angle) * params.growthSpeed,
+                        last.y + sin(this.angle) * params.growthSpeed
+                    );
+                    this.segments.push(next);
+
+                    if (this.segments.length > this.maxLen / params.growthSpeed) {
+                        this.growing = false;
+                    }
+                }
+            }
+
+            display() {
+                noFill();
+                stroke(lerpColor(color(60, 100, 60), color(150, 200, 150), this.segments.length / 100));
+                strokeWeight(1.5);
+
+                beginShape();
+                let windX = noise(frameCount * 0.01 + this.windOffset) * params.wind * 20;
+                for (let i = 0; i < this.segments.length; i++) {
+                    let p = this.segments[i];
+                    let flex = map(i, 0, this.segments.length, 0, 1);
+                    vertex(p.x + windX * flex, p.y);
+                }
+                endShape();
+            }
+        }
+
+        function windowResized() {
+            let container = document.getElementById('canvas-container');
+            resizeCanvas(container.offsetWidth, container.offsetHeight);
+        }
+    </script>
+</body>
+
+</html>

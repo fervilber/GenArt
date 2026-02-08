@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Orbits | GenArt</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #050507;
+            --sidebar-bg: rgba(10, 10, 15, 0.95);
+            --text-main: #f0f0f0;
+            --text-muted: #80808a;
+            --accent: #6a9bcc;
+            /* Lunar/Celestial Blue */
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-deep);
+            min-height: 100vh;
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .sidebar {
+            width: 320px;
+            flex-shrink: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar h1 {
+            font-family: 'Lora', serif;
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .sidebar .subtitle {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 32px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .control-section {
+            margin-bottom: 32px;
+        }
+
+        .control-section h3 {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        .control-section h3::before {
+            content: '•';
+            color: var(--accent);
+        }
+
+        .seed-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            margin-bottom: 12px;
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            text-align: center;
+        }
+
+        .seed-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .value-display {
+            font-family: monospace;
+            font-size: 11px;
+            color: var(--accent);
+            min-width: 35px;
+            text-align: right;
+        }
+
+        .button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            text-transform: uppercase;
+        }
+
+        .button:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+
+        .button.secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+        }
+
+        .button.tertiary {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .back-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .back-link:hover {
+            color: var(--accent);
+        }
+
+        /* Theoretical Info Modal */
+        #theory-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .modal-content {
+            background: var(--sidebar-bg);
+            border: 1px solid var(--glass-border);
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+
+        .modal-content h2 {
+            font-family: 'Lora', serif;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+
+        .modal-content p {
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+
+        .modal-content ul {
+            margin-left: 20px;
+            margin-bottom: 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .modal-content li {
+            margin-bottom: 8px;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .close-modal:hover {
+            color: var(--accent);
+        }
+
+        .theory-btn {
+            margin-bottom: 20px;
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: var(--text-muted);
+            font-size: 11px;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.3s;
+        }
+
+        .theory-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        @media (max-width: 800px) {
+            .container {
+                flex-direction: column;
+                overflow-y: auto;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <a href="../index.html" class="back-link">← Volver al Estudio</a>
+            <h1>Cosmic Orbits</h1>
+            <div class="subtitle">Caos Armónico N-Cuerpos</div>
+
+            <button class="theory-btn" onclick="toggleTheory(true)">Base Teórica</button>
+
+            <div class="control-section">
+                <h3>Vínculo Temporal</h3>
+                <input type="number" id="seed-input" class="seed-input" value="12345" onchange="updateSeed()">
+                <div class="seed-controls">
+                    <button class="button secondary" onclick="previousSeed()">←</button>
+                    <button class="button secondary" onclick="nextSeed()">→</button>
+                </div>
+                <button class="button tertiary" onclick="randomSeedAndUpdate()">Reordenar Universo</button>
+            </div>
+
+            <div class="control-section">
+                <h3>Constantes Universales</h3>
+                <div class="control-group">
+                    <label>Magnitud de Gravedad (G)</label>
+                    <div class="slider-container">
+                        <input type="range" id="gravity" min="0.1" max="5" step="0.1" value="1.5"
+                            oninput="updateParam('gravity', this.value)">
+                        <span class="value-display" id="gravity-value">1.5</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Conteo Estelar (N)</label>
+                    <div class="slider-container">
+                        <input type="range" id="bodyCount" min="2" max="20" step="1" value="8"
+                            oninput="updateParam('bodyCount', this.value)">
+                        <span class="value-display" id="bodyCount-value">8</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Energía Cinética Inicial</label>
+                    <div class="slider-container">
+                        <input type="range" id="velocityScale" min="0.1" max="2" step="0.1" value="0.8"
+                            oninput="updateParam('velocityScale', this.value)">
+                        <span class="value-display" id="velocityScale-value">0.8</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Visualización</h3>
+                <div class="control-group">
+                    <label>Persistencia del Rastro</label>
+                    <div class="slider-container">
+                        <input type="range" id="trailDecay" min="1" max="50" step="1" value="15"
+                            oninput="updateParam('trailDecay', this.value)">
+                        <span class="value-display" id="trailDecay-value">15</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Atracción del Ratón (Agujero Negro)</label>
+                    <div class="slider-container">
+                        <input type="range" id="mouseAttraction" min="0" max="5" step="0.1" value="0"
+                            oninput="updateParam('mouseAttraction', this.value)">
+                        <span class="value-display" id="mouseAttraction-value">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-section" style="margin-top: auto;">
+                <button class="button" onclick="resetParameters()">Reiniciar Estado Cósmico</button>
+            </div>
+        </div>
+
+        <div class="canvas-area">
+            <div id="canvas-container"></div>
+        </div>
+    </div>
+
+    <!-- Theoretical Modal -->
+    <div id="theory-modal">
+        <div class="modal-content">
+            <div class="close-modal" onclick="toggleTheory(false)">✕</div>
+            <h2>Cosmic Orbits: Theory</h2>
+            <p>
+                Esta visualización es un simulador gravitatorio de N-Cuerpos. Se basa en las leyes de Newton para
+                recrear la danza matemática de los astros bajo una fuerza central masiva.
+            </p>
+            <p><strong>El Algoritmo:</strong></p>
+            <ul>
+                <li><strong>Ley de Gravitación Universal:</strong> Cada par de cuerpos interactúa mediante la fórmula $F
+                    = G \frac{m_1 m_2}{r^2}$. Para evitar singularidades (fuerzas infinitas en distancias cero), se
+                    aplica un factor de suavizado (*constrain*) a la distancia mínima.</li>
+                <li><strong>Estabilidad Central:</strong> Se posiciona un cuerpo de gran masa fija en el centro para
+                    anclar el sistema. Los demás cuerpos se inician con una velocidad tangencial calculada para
+                    aproximarse a una órbita estable inicial.</li>
+                <li><strong>Dinámica Acumulativa:</strong> En cada frame, se suman los vectores de fuerza de todos los
+                    cuerpos sobre cada individuo, resultando en trayectorias complejas y emergentes.</li>
+                <li><strong>Persistencia Temporal:</strong> El fondo no se borra por completo; se redibuja con un nivel
+                    de transparencia controlado por *Trail Persistence*, permitiendo rastrear la historia del sistema.
+                </li>
+            </ul>
+            <p><strong>Interacciones:</strong></p>
+            <p>
+                El ratón se puede activar como un **Agujero Negro**. Al hacerlo, el algoritmo añade un vector de fuerza
+                adicional desde cada planeta hacia la posición del cursor, con una magnitud astronómica que puede
+                desestabilizar órbitas estables milenarias en segundos.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheory(show) {
+            document.getElementById('theory-modal').style.display = show ? 'flex' : 'none';
+        }
+
+        let params = {
+            seed: 12345,
+            gravity: 1.5,
+            bodyCount: 8,
+            velocityScale: 0.8,
+            trailDecay: 15,
+            damping: 1.0,
+            mouseAttraction: 0
+        };
+
+        let bodies = [];
+        let stars = [];
+
+        function setup() {
+            let canvas = createCanvas(windowWidth - 380, windowHeight - 40);
+            if (windowWidth < 800) canvas = createCanvas(windowWidth - 40, 500);
+            canvas.parent('canvas-container');
+            initializeSystem();
+        }
+
+        function initializeSystem() {
+            randomSeed(params.seed);
+            background(5, 5, 7);
+            bodies = [];
+            stars = [];
+
+            // Background stars
+            for (let i = 0; i < 200; i++) {
+                stars.push({ x: random(width), y: random(height), s: random(0.5, 1.5), o: random(50, 150) });
+            }
+
+            // Create bodies
+            // One large central sun
+            bodies.push(new Body(width / 2, height / 2, 500, true));
+
+            for (let i = 0; i < params.bodyCount - 1; i++) {
+                let angle = random(TWO_PI);
+                let r = random(100, min(width, height) * 0.4);
+                let x = width / 2 + cos(angle) * r;
+                let y = height / 2 + sin(angle) * r;
+                let b = new Body(x, y, random(5, 50));
+
+                // Orbital velocity approximation
+                let v = sqrt(params.gravity * 500 / r) * params.velocityScale;
+                b.vel = createVector(-sin(angle) * v, cos(angle) * v);
+                bodies.push(b);
+            }
+        }
+
+        function draw() {
+            background(5, 5, 7, params.trailDecay);
+
+            // Draw faint stars
+            noStroke();
+            for (let s of stars) {
+                fill(150, 150, 180, s.o * (params.trailDecay / 50));
+                circle(s.x, s.y, s.s);
+            }
+
+            // Mouse interaction (Black Hole)
+            if (params.mouseAttraction > 0) {
+                let mousePos = createVector(mouseX, mouseY);
+                // Draw cursor black hole indicator
+                noStroke();
+                fill(params.mouseAttraction * 50, 0, 0, 50);
+                circle(mouseX, mouseY, params.mouseAttraction * 10);
+
+                for (let b of bodies) {
+                    if (!b.fixed) {
+                        let force = p5.Vector.sub(mousePos, b.pos);
+                        let distanceSq = constrain(force.magSq(), 100, 250000);
+                        let strength = (params.mouseAttraction * 1000 * b.mass) / distanceSq;
+                        force.setMag(strength);
+                        b.applyForce(force);
+                    }
+                }
+            }
+
+            // Physics loop
+            for (let i = 0; i < bodies.length; i++) {
+                for (let j = 0; j < bodies.length; j++) {
+                    if (i !== j) {
+                        bodies[i].attract(bodies[j]);
+                    }
+                }
+            }
+
+            for (let b of bodies) {
+                b.update();
+                b.display();
+            }
+        }
+
+        class Body {
+            constructor(x, y, m, fixed = false) {
+                this.pos = createVector(x, y);
+                this.vel = createVector(0, 0);
+                this.acc = createVector(0, 0);
+                this.mass = m;
+                this.fixed = fixed;
+                this.color = fixed ? color(255, 230, 150) : color(106, 155, 204);
+            }
+
+            attract(other) {
+                let force = p5.Vector.sub(this.pos, other.pos);
+                let distanceSq = constrain(force.magSq(), 100, 10000);
+                let strength = (params.gravity * this.mass * other.mass) / distanceSq;
+                force.setMag(strength);
+                other.applyForce(force);
+            }
+
+            applyForce(force) {
+                if (!this.fixed) {
+                    let f = p5.Vector.div(force, this.mass);
+                    this.acc.add(f);
+                }
+            }
+
+            update() {
+                if (!this.fixed) {
+                    this.vel.add(this.acc);
+                    this.vel.mult(params.damping);
+                    this.pos.add(this.vel);
+                    this.acc.mult(0);
+                }
+            }
+
+            display() {
+                noStroke();
+                fill(this.color);
+                let r = sqrt(this.mass) * 2;
+                circle(this.pos.x, this.pos.y, r);
+
+                // Visual flare for the sun
+                if (this.fixed) {
+                    fill(255, 230, 150, 20);
+                    circle(this.pos.x, this.pos.y, r * 2.5);
+                }
+            }
+        }
+
+        function updateParam(id, val) {
+            params[id] = parseFloat(val);
+            document.getElementById(id + '-value').innerText = val;
+            if (id === 'bodyCount') initializeSystem();
+        }
+
+        function updateSeed() {
+            params.seed = parseInt(document.getElementById('seed-input').value) || 1;
+            initializeSystem();
+        }
+
+        function previousSeed() { params.seed--; document.getElementById('seed-input').value = params.seed; initializeSystem(); }
+        function nextSeed() { params.seed++; document.getElementById('seed-input').value = params.seed; initializeSystem(); }
+        function randomSeedAndUpdate() { params.seed = floor(random(1000000)); document.getElementById('seed-input').value = params.seed; initializeSystem(); }
+
+        function resetParameters() {
+            params = { seed: 12345, gravity: 1.5, bodyCount: 8, velocityScale: 0.8, trailDecay: 15, damping: 1.0, mouseAttraction: 0 };
+            for (let key in params) {
+                let el = document.getElementById(key);
+                if (el) el.value = params[key];
+                let valEl = document.getElementById(key + '-value');
+                if (valEl) valEl.innerText = params[key];
+            }
+            document.getElementById('seed-input').value = params.seed;
+            initializeSystem();
+        }
+
+        function windowResized() {
+            let w = windowWidth > 800 ? windowWidth - 380 : windowWidth - 40;
+            let h = windowWidth > 800 ? windowHeight - 40 : 500;
+            resizeCanvas(w, h);
+            background(5, 5, 7);
+        }
+    </script>
+</body>
+
+</html>

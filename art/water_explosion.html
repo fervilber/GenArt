@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Explosion | GenArt</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0a0a0b;
+            --sidebar-bg: rgba(15, 15, 17, 0.95);
+            --text-main: #f0f0f0;
+            --text-muted: #a0a0a5;
+            --accent: #4e9af1;
+            /* Water blue */
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .sidebar {
+            width: 320px;
+            flex-shrink: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(20px);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar h1 {
+            font-family: 'Lora', serif;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 32px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .control-section {
+            margin-bottom: 32px;
+        }
+
+        .control-section h3 {
+            font-size: 14px;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        .control-section h3::before {
+            content: '•';
+            color: var(--accent);
+            margin-right: 8px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            appearance: none;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .value-display {
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--accent);
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .theory-btn {
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: var(--text-muted);
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 11px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .back-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 10px;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        #theory-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .modal-content {
+            background: var(--sidebar-bg);
+            border: 1px solid var(--glass-border);
+            max-width: 700px;
+            padding: 40px;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <a href="../index.html" class="back-link">← Volver al Estudio</a>
+            <h1>Water Explosion</h1>
+            <div class="subtitle">Ciclo de Tensión Superficial</div>
+
+            <button class="theory-btn" onclick="toggleTheory(true)">Base Teórica</button>
+
+            <div class="control-section">
+                <h3>Dinámica</h3>
+                <div class="control-group">
+                    <label>Fuerza de Explosión</label>
+                    <div class="slider-container">
+                        <input type="range" id="power" min="5" max="25" step="1" value="15"
+                            oninput="updateParam('power', this.value)">
+                        <span class="value-display" id="power-value">15</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Gravedad de Reencuentro</label>
+                    <div class="slider-container">
+                        <input type="range" id="attraction" min="0.1" max="2" step="0.1" value="0.8"
+                            oninput="updateParam('attraction', this.value)">
+                        <span class="value-display" id="attraction-value">0.8</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Cantidad de Gotas</label>
+                    <div class="slider-container">
+                        <input type="range" id="count" min="100" max="1500" step="100" value="800"
+                            oninput="updateParam('count', this.value)">
+                        <span class="value-display" id="count-value">800</span>
+                    </div>
+                </div>
+            </div>
+
+            <button
+                style="background: var(--accent); border:none; padding:12px; border-radius:6px; color:white; font-weight:600; cursor:pointer;"
+                onclick="triggerExplosion()">🌊 Nueva Gota</button>
+        </div>
+
+        <div class="canvas-area">
+            <div id="canvas-container"></div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="theory-modal">
+        <div class="modal-content">
+            <div class="close-modal" onclick="toggleTheory(false)">✕</div>
+            <h2 style="color: var(--accent); font-family: Lora; margin-bottom: 20px;">Water Explosion: Teoría</h2>
+            <p style="font-size: 14px; line-height: 1.6; color: var(--text-muted);">
+                Esta simulación visualiza el ciclo de entropía y cohesión. Una gota central se desintegra violentamente
+                para luego ser arrastrada de vuelta por la gravedad mutua.
+            </p>
+            <ul style="margin-top: 20px; font-size: 13px; color: var(--text-muted); list-style-position: inside;">
+                <li><strong>Impulso Radial:</strong> En $t=0$, se aplica un vector de fuerza desde el centro hacia
+                    afuera a todas las partículas.</li>
+                <li><strong>Inversión de Campo:</strong> Tras un periodo de expansión, la fuerza cambia su signo,
+                    convirtiéndose en atracción gravitatoria proporcional a la masa ($r^2$).</li>
+                <li><strong>Coalescencia Visual:</strong> Las partículas más grandes atraen a las pequeñas con más
+                    fuerza, creando una reunificación acelerada en el centro.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let drops = [];
+        let params = { power: 15, attraction: 0.8, count: 800 };
+        let state = "idle"; // idle, exploding, attracting
+        let timer = 0;
+
+        function updateParam(id, val) {
+            params[id] = parseFloat(val);
+            document.getElementById(`${id}-value`).innerText = val;
+        }
+
+        function toggleTheory(show) {
+            document.getElementById('theory-modal').style.display = show ? 'flex' : 'none';
+        }
+
+        function setup() {
+            let container = document.getElementById('canvas-container');
+            let canvas = createCanvas(container.offsetWidth, container.offsetHeight);
+            canvas.parent('canvas-container');
+            triggerExplosion();
+        }
+
+        function triggerExplosion() {
+            drops = [];
+            for (let i = 0; i < params.count; i++) drops.push(new Drop());
+            state = "exploding";
+            timer = 0;
+        }
+
+        function draw() {
+            background(5, 5, 7, 30);
+
+            timer++;
+            if (timer > 60 && state === "exploding") state = "attracting";
+
+            let center = createVector(width / 2, height / 2);
+
+            for (let d of drops) {
+                if (state === "exploding") {
+                    let force = p5.Vector.sub(d.pos, center);
+                    force.setMag(params.power / d.size);
+                    d.applyForce(force);
+                } else if (state === "attracting") {
+                    let force = p5.Vector.sub(center, d.pos);
+                    let dist = force.mag();
+                    force.setMag(params.attraction * d.size * map(dist, 0, width, 0.1, 5));
+                    d.applyForce(force);
+                }
+
+                d.update();
+                d.display();
+            }
+        }
+
+        class Drop {
+            constructor() {
+                this.pos = createVector(width / 2 + random(-5, 5), height / 2 + random(-5, 5));
+                this.vel = createVector(0, 0);
+                this.acc = createVector(0, 0);
+                this.size = random(1, 5);
+                this.color = color(78, 154, 241, random(100, 200));
+            }
+
+            applyForce(f) {
+                this.acc.add(f);
+            }
+
+            update() {
+                this.vel.add(this.acc);
+                this.vel.mult(0.95); // Drag
+                this.pos.add(this.vel);
+                this.acc.mult(0);
+
+                // Boundary bounce
+                let r = this.size / 2;
+                if (this.pos.x < r) {
+                    this.pos.x = r;
+                    this.vel.x *= -0.8; // Damping bounce
+                } else if (this.pos.x > width - r) {
+                    this.pos.x = width - r;
+                    this.vel.x *= -0.8;
+                }
+
+                if (this.pos.y < r) {
+                    this.pos.y = r;
+                    this.vel.y *= -0.8;
+                } else if (this.pos.y > height - r) {
+                    this.pos.y = height - r;
+                    this.vel.y *= -0.8;
+                }
+            }
+
+            display() {
+                noStroke();
+                fill(this.color);
+                circle(this.pos.x, this.pos.y, this.size);
+            }
+        }
+
+        function windowResized() {
+            let container = document.getElementById('canvas-container');
+            resizeCanvas(container.offsetWidth, container.offsetHeight);
+        }
+    </script>
+</body>
+
+</html>

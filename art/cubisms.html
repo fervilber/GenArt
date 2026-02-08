@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cubisms | GenArt</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0a0a0b;
+            --sidebar-bg: rgba(15, 15, 17, 0.95);
+            --text-main: #f0f0f0;
+            --text-muted: #a0a0a5;
+            --accent: #00d2ff;
+            /* Urban electric cyan */
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .sidebar {
+            width: 320px;
+            flex-shrink: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(20px);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar h1 {
+            font-family: 'Lora', serif;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 32px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .control-section {
+            margin-bottom: 32px;
+        }
+
+        .control-section h3 {
+            font-size: 14px;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        .control-section h3::before {
+            content: '•';
+            color: var(--accent);
+            margin-right: 8px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            appearance: none;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .value-display {
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--accent);
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .theory-btn {
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: var(--text-muted);
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 11px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .back-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 10px;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        #theory-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .modal-content {
+            background: var(--sidebar-bg);
+            border: 1px solid var(--glass-border);
+            max-width: 700px;
+            padding: 40px;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <a href="../index.html" class="back-link">← Volver al Estudio</a>
+            <h1>Cubisms</h1>
+            <div class="subtitle">Flujos de Neon Urbano</div>
+
+            <button class="theory-btn" onclick="toggleTheory(true)">Base Teórica</button>
+
+            <div class="control-section">
+                <h3>Arquitectura</h3>
+                <div class="control-group">
+                    <label>Tamaño de Malla</label>
+                    <div class="slider-container">
+                        <input type="range" id="gridSize" min="20" max="100" step="10" value="40"
+                            oninput="updateParam('gridSize', this.value)">
+                        <span class="value-display" id="gridSize-value">40</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Velocidad de Flujo</label>
+                    <div class="slider-container">
+                        <input type="range" id="speed" min="1" max="10" step="0.5" value="4"
+                            oninput="updateParam('speed', this.value)">
+                        <span class="value-display" id="speed-value">4</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Densidad de Tráfico</label>
+                    <div class="slider-container">
+                        <input type="range" id="count" min="5" max="50" step="1" value="20"
+                            oninput="updateParam('count', this.value)">
+                        <span class="value-display" id="count-value">20</span>
+                    </div>
+                </div>
+            </div>
+
+            <button
+                style="background: var(--accent); border:none; padding:12px; border-radius:6px; color:black; font-weight:600; cursor:pointer;"
+                onclick="resetGrid()">🔌 Reiniciar Malla</button>
+        </div>
+
+        <div class="canvas-area">
+            <div id="canvas-container"></div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="theory-modal">
+        <div class="modal-content">
+            <div class="close-modal" onclick="toggleTheory(false)">✕</div>
+            <h2 style="color: var(--accent); font-family: Lora; margin-bottom: 20px;">Cubisms: Teoría</h2>
+            <p style="font-size: 14px; line-height: 1.6; color: var(--text-muted);">
+                Este algoritmo explora la geometría ortogonal aplicada a flujos dinámicos. Representa la rigidez
+                estructural de una ciudad futurista.
+            </p>
+            <ul style="margin-top: 20px; font-size: 13px; color: var(--text-muted); list-style-position: inside;">
+                <li><strong>Malla Estricta:</strong> Los agentes solo pueden moverse en ángulos de 90°.</li>
+                <li><strong>Lógica de Intersección:</strong> Al llegar a un nodo de la malla, el agente decide
+                    aleatoriamente si girar o continuar.</li>
+                <li><strong>Colisiones de Flujo:</strong> Cuando dos flujos se cruzan, la fricción visual aumenta el
+                    grosor y la intensidad de la luz, pero penaliza la velocidad de avance, simulando congestión
+                    energética.</li>
+                <li><strong>Luz Persistente:</strong> Los flujos dejan rastros que se desvanecen, acentuando la
+                    estructura urbana.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let cars = [];
+        let params = { gridSize: 40, speed: 4, count: 20 };
+
+        function updateParam(id, val) {
+            params[id] = parseFloat(val);
+            document.getElementById(`${id}-value`).innerText = val;
+            if (id === 'count') syncCars();
+        }
+
+        function toggleTheory(show) {
+            document.getElementById('theory-modal').style.display = show ? 'flex' : 'none';
+        }
+
+        function setup() {
+            let container = document.getElementById('canvas-container');
+            let canvas = createCanvas(container.offsetWidth, container.offsetHeight);
+            canvas.parent('canvas-container');
+            resetGrid();
+        }
+
+        function resetGrid() {
+            background(5, 5, 7);
+            cars = [];
+            syncCars();
+        }
+
+        function syncCars() {
+            while (cars.length < params.count) cars.push(new Car());
+            if (cars.length > params.count) cars.splice(0, cars.length - params.count);
+        }
+
+        function draw() {
+            background(5, 5, 7, 10);
+
+            // Draw grid lines faintly
+            stroke(255, 255, 255, 5);
+            for (let x = 0; x < width; x += params.gridSize) line(x, 0, x, height);
+            for (let y = 0; y < height; y += params.gridSize) line(0, y, width, y);
+
+            for (let i = 0; i < cars.length; i++) {
+                for (let j = i + 1; j < cars.length; j++) {
+                    let d = dist(cars[i].x, cars[i].y, cars[j].x, cars[j].y);
+                    if (d < params.speed) {
+                        cars[i].onIntersect();
+                        cars[j].onIntersect();
+                    }
+                }
+            }
+
+            for (let c of cars) {
+                c.move();
+                c.display();
+            }
+        }
+
+        class Car {
+            constructor() {
+                this.init();
+            }
+
+            init() {
+                this.x = round(random(width) / params.gridSize) * params.gridSize;
+                this.y = round(random(height) / params.gridSize) * params.gridSize;
+                this.dir = createVector(1, 0).rotate(HALF_PI * floor(random(4)));
+                this.intensity = 100;
+                this.thickness = 1;
+                this.speedMod = 1;
+            }
+
+            onIntersect() {
+                this.intensity = min(255, this.intensity + 20);
+                this.thickness = min(6, this.thickness + 0.5);
+                this.speedMod = max(0.2, this.speedMod - 0.1);
+            }
+
+            move() {
+                this.x += this.dir.x * params.speed * this.speedMod;
+                this.y += this.dir.y * params.speed * this.speedMod;
+
+                // Turn logic at grid nodes
+                if (this.x % params.gridSize < params.speed && this.y % params.gridSize < params.speed) {
+                    this.x = round(this.x / params.gridSize) * params.gridSize;
+                    this.y = round(this.y / params.gridSize) * params.gridSize;
+
+                    if (random() < 0.3) {
+                        let turns = [HALF_PI, -HALF_PI];
+                        this.dir.rotate(random(turns));
+                    }
+                }
+
+                if (this.x < 0 || this.x > width || this.y < 0 || this.y > height) this.init();
+            }
+
+            display() {
+                strokeWeight(this.thickness + 1);
+                stroke(varColor(this.dir), this.intensity);
+                point(this.x, this.y);
+
+                strokeWeight(this.thickness);
+                stroke(varColor(this.dir), this.intensity * 0.6);
+                line(this.x, this.y, this.x - this.dir.x * 20, this.y - this.dir.y * 20);
+            }
+        }
+
+        function varColor(dir) {
+            if (dir.x !== 0) return color(0, 210, 255);
+            return color(255, 100, 255);
+        }
+
+        function windowResized() {
+            let container = document.getElementById('canvas-container');
+            resizeCanvas(container.offsetWidth, container.offsetHeight);
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flow Fields | GenArt</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #08080a;
+            --sidebar-bg: rgba(12, 12, 15, 0.98);
+            --text-main: #f5f5f7;
+            --text-muted: #70707a;
+            --accent: #788c5d;
+            /* Forest / Organic Green */
+            --glass-border: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-deep);
+            min-height: 100vh;
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .sidebar {
+            width: 320px;
+            flex-shrink: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(20px);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar h1 {
+            font-family: 'Lora', serif;
+            font-size: 22px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .sidebar .subtitle {
+            color: var(--text-muted);
+            font-size: 11px;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+        }
+
+        .control-section {
+            margin-bottom: 24px;
+        }
+
+        .control-section h3 {
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+        }
+
+        .seed-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+            margin-bottom: 10px;
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            text-align: center;
+        }
+
+        .seed-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .control-group {
+            margin-bottom: 16px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .value-display {
+            font-family: monospace;
+            font-size: 10px;
+            color: var(--accent);
+            min-width: 30px;
+            text-align: right;
+        }
+
+        .button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            text-transform: uppercase;
+        }
+
+        .button.secondary {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+        }
+
+        .button.tertiary {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .back-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .back-link:hover {
+            color: var(--accent);
+        }
+
+        /* Theoretical Info Modal */
+        #theory-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .modal-content {
+            background: var(--sidebar-bg);
+            border: 1px solid var(--glass-border);
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+
+        .modal-content h2 {
+            font-family: 'Lora', serif;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+
+        .modal-content p {
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+
+        .modal-content ul {
+            margin-left: 20px;
+            margin-bottom: 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .modal-content li {
+            margin-bottom: 8px;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .close-modal:hover {
+            color: var(--accent);
+        }
+
+        .theory-btn {
+            margin-top: 15px;
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            color: var(--text-muted);
+            font-size: 11px;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.3s;
+        }
+
+        .theory-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        @media (max-width: 800px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <a href="../index.html" class="back-link">← Volver al Estudio</a>
+            <h1>Flow Fields</h1>
+            <div class="subtitle">Corrientes Invisibles</div>
+
+            <button class="theory-btn" onclick="toggleTheory(true)">Base Teórica</button>
+
+            <div class="control-section" style="margin-top: 30px;">
+                <h3>Vínculo Temporal</h3>
+                <input type="number" id="seed-input" class="seed-input" value="12345" onchange="updateSeed()">
+                <div class="seed-controls">
+                    <button class="button secondary" onclick="previousSeed()">←</button>
+                    <button class="button secondary" onclick="nextSeed()">→</button>
+                </div>
+                <button class="button tertiary" onclick="randomSeedAndUpdate()">Nuevo Paisaje</button>
+            </div>
+
+            <div class="control-section">
+                <h3>Topología</h3>
+                <div class="control-group">
+                    <label>Escala de Ruido (Caos)</label>
+                    <div class="slider-container">
+                        <input type="range" id="noiseScale" min="0.001" max="0.05" step="0.001" value="0.01"
+                            oninput="updateParam('noiseScale', this.value)">
+                        <span class="value-display" id="noiseScale-value">0.01</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Complejidad de Corriente</label>
+                    <div class="slider-container">
+                        <input type="range" id="complexity" min="1" max="5" step="1" value="2"
+                            oninput="updateParam('complexity', this.value)">
+                        <span class="value-display" id="complexity-value">2</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Fuerza del Flujo</label>
+                    <div class="slider-container">
+                        <input type="range" id="strength" min="0.1" max="2" step="0.1" value="0.8"
+                            oninput="updateParam('strength', this.value)">
+                        <span class="value-display" id="strength-value">0.8</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Partículas</h3>
+                <div class="control-group">
+                    <label>Densidad</label>
+                    <div class="slider-container">
+                        <input type="range" id="count" min="500" max="5000" step="100" value="2000"
+                            oninput="updateParam('count', this.value)">
+                        <span class="value-display" id="count-value">2000</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Longevidad del Rastro</label>
+                    <div class="slider-container">
+                        <input type="range" id="fade" min="1" max="50" step="1" value="10"
+                            oninput="updateParam('fade', this.value)">
+                        <span class="value-display" id="fade-value">10</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Interactividad</h3>
+                <div class="control-group">
+                    <label>Influencia del Ratón</label>
+                    <div class="slider-container">
+                        <input type="range" id="mouseInfluence" min="0" max="1" step="0.05" value="0.3"
+                            oninput="updateParam('mouseInfluence', this.value)">
+                        <span class="value-display" id="mouseInfluence-value">0.3</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-section" style="margin-top: auto;">
+                <button class="button" onclick="resetParameters()">Reiniciar Topología</button>
+            </div>
+        </div>
+
+        <div class="canvas-area">
+            <div id="canvas-container"></div>
+        </div>
+    </div>
+
+    <!-- Theoretical Modal -->
+    <div id="theory-modal">
+        <div class="modal-content">
+            <div class="close-modal" onclick="toggleTheory(false)">✕</div>
+            <h2>Flow Fields: Theory</h2>
+            <p>
+                Esta obra es una visualización de campos vectoriales dinámicos. Representa el flujo de energía a través
+                de una topografía matemática invisible definida por el ruido algorítmico.
+            </p>
+            <p><strong>El Algoritmo:</strong></p>
+            <ul>
+                <li><strong>Campo Vectorial:</strong> Cada punto del lienzo tiene asignado un vector de dirección. El
+                    conjunto de estos vectores forma un "campo de flujo" que guía el movimiento de las partículas.</li>
+                <li><strong>Ruido de Perlin (fBm):</strong> En lugar de aleatoriedad pura, se utiliza ruido de Perlin
+                    multi-capa (*octavas*). La suma de varias capas de ruido crea estructuras fractales que imitan
+                    corrientes naturales, nubes o mármol.</li>
+                <li><strong>Navegación de Partículas:</strong> Miles de agentes autónomos consultan el ángulo del campo
+                    en su posición actual y ajustan su aceleración para alinearse con el flujo, dejando una estela
+                    persistente debido al *fading* parcial del fondo.</li>
+                <li><strong>Escala y Complejidad:</strong> Los parámetros modifican la frecuencia del ruido (suavidad
+                    del campo) y el número de octavas (detalle de las turbulencias).</li>
+            </ul>
+            <p><strong>Interacciones:</strong></p>
+            <p>
+                El ratón genera una distorsión en el campo local. Al activarse, se calcula un vector perpendicular a la
+                dirección hacia el cursor, creando un **vórtice** matemático que se mezcla (lerp) con el ruido base,
+                permitiendo al usuario desviar las corrientes naturales con su movimiento.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheory(show) {
+            document.getElementById('theory-modal').style.display = show ? 'flex' : 'none';
+        }
+
+        let params = {
+            seed: 12345,
+            noiseScale: 0.01,
+            complexity: 2,
+            strength: 0.8,
+            count: 2000,
+            fade: 10,
+            mouseInfluence: 0.3
+        };
+
+        let particles = [];
+        let zoom = 1;
+
+        function setup() {
+            let canvas = createCanvas(windowWidth - 380, windowHeight - 40);
+            if (windowWidth < 800) canvas = createCanvas(windowWidth - 40, 500);
+            canvas.parent('canvas-container');
+            initializeSystem();
+        }
+
+        function initializeSystem() {
+            randomSeed(params.seed);
+            noiseSeed(params.seed);
+            background(5, 5, 7);
+            particles = [];
+            for (let i = 0; i < params.count; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function draw() {
+            background(5, 5, 7, params.fade);
+
+            // Dynamic count adjustment
+            if (particles.length < params.count) {
+                for (let i = 0; i < 20; i++) particles.push(new Particle());
+            } else if (particles.length > params.count) {
+                particles.splice(0, particles.length - params.count);
+            }
+
+            for (let p of particles) {
+                p.follow();
+                p.update();
+                p.display();
+                p.edges();
+            }
+        }
+
+        class Particle {
+            constructor() {
+                this.pos = createVector(random(width), random(height));
+                this.vel = createVector(0, 0);
+                this.acc = createVector(0, 0);
+                this.maxSpeed = random(1.5, 3);
+                this.prevPos = this.pos.copy();
+                this.color = color(120, 140, 93, 150); // var(--accent) #788c5d
+            }
+
+            update() {
+                this.vel.add(this.acc);
+                this.vel.limit(this.maxSpeed);
+                this.pos.add(this.vel);
+                this.acc.mult(0);
+            }
+
+            follow() {
+                let x = this.pos.x * params.noiseScale;
+                let y = this.pos.y * params.noiseScale;
+
+                // Multi-layered noise (octaves)
+                let angle = 0;
+                let amp = 1;
+                let freq = 1;
+                for (let i = 0; i < params.complexity; i++) {
+                    angle += noise(x * freq, y * freq) * amp;
+                    amp *= 0.5;
+                    freq *= 2;
+                }
+                angle *= TWO_PI * 4;
+
+                let force = p5.Vector.fromAngle(angle);
+                force.mult(params.strength);
+
+                // Mouse interaction
+                if (params.mouseInfluence > 0) {
+                    let mouse = createVector(mouseX, mouseY);
+                    let distToMouse = p5.Vector.dist(this.pos, mouse);
+                    if (distToMouse < 200) {
+                        let mouseDir = p5.Vector.sub(mouse, this.pos);
+                        mouseDir.normalize();
+
+                        // Vortex math: Rotate perpendicular to mouse direction
+                        let vortex = createVector(-mouseDir.y, mouseDir.x);
+                        vortex.mult(params.mouseInfluence * 2);
+
+                        // Attraction/Repulsion blend
+                        mouseDir.mult(params.mouseInfluence * 0.5);
+
+                        let combined = p5.Vector.lerp(force, vortex, map(distToMouse, 0, 200, 1, 0));
+                        force = combined;
+                    }
+                }
+
+                this.applyForce(force);
+            }
+
+            applyForce(force) {
+                this.acc.add(force);
+            }
+
+            display() {
+                stroke(this.color);
+                strokeWeight(1);
+                line(this.pos.x, this.pos.y, this.prevPos.x, this.prevPos.y);
+                this.updatePrev();
+            }
+
+            updatePrev() {
+                this.prevPos.x = this.pos.x;
+                this.prevPos.y = this.pos.y;
+            }
+
+            edges() {
+                if (this.pos.x > width) { this.pos.x = 0; this.updatePrev(); }
+                if (this.pos.x < 0) { this.pos.x = width; this.updatePrev(); }
+                if (this.pos.y > height) { this.pos.y = 0; this.updatePrev(); }
+                if (this.pos.y < 0) { this.pos.y = height; this.updatePrev(); }
+            }
+        }
+
+        function updateParam(id, val) {
+            params[id] = parseFloat(val);
+            document.getElementById(id + '-value').innerText = val;
+            if (id === 'count' || id === 'noiseScale' || id === 'complexity') {
+                // Some params might benefit from re-init but real-time is smoother
+            }
+        }
+
+        function updateSeed() { params.seed = parseInt(document.getElementById('seed-input').value) || 1; initializeSystem(); }
+        function previousSeed() { params.seed--; document.getElementById('seed-input').value = params.seed; initializeSystem(); }
+        function nextSeed() { params.seed++; document.getElementById('seed-input').value = params.seed; initializeSystem(); }
+        function randomSeedAndUpdate() { params.seed = floor(random(999999)); document.getElementById('seed-input').value = params.seed; initializeSystem(); }
+
+        function resetParameters() {
+            params = { seed: 12345, noiseScale: 0.01, complexity: 2, strength: 0.8, count: 2000, fade: 10 };
+            for (let key in params) {
+                let el = document.getElementById(key);
+                if (el) el.value = params[key];
+                let valEl = document.getElementById(key + '-value');
+                if (valEl) valEl.innerText = params[key];
+            }
+            document.getElementById('seed-input').value = params.seed;
+            initializeSystem();
+        }
+
+        function windowResized() {
+            let w = windowWidth > 800 ? windowWidth - 380 : windowWidth - 40;
+            let h = windowWidth > 800 ? windowHeight - 40 : 500;
+            resizeCanvas(w, h);
+            background(5, 5, 7);
+        }
+    </script>
+</body>
+
+</html>
