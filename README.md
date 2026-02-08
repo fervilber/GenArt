@@ -2,7 +2,7 @@
 
 > *"Donde la lógica binaria se encuentra con la evolución orgánica."*
 
-**GenArt Studio** es una colección curada de algoritmos de arte generativo que exploran la belleza de las matemáticas, la física y el caos controlado. Desarrollado con tecnologías web modernas, este estudio presenta una serie de experiencias visuales interactivas que simulan fenómenos naturales y abstractos.
+**GenArt Studio** es una colección de algoritmos de arte generativo que exploran la belleza de las matemáticas, la física y el caos controlado. Desarrollado con tecnologías web modernas, este estudio presenta una serie de experiencias visuales interactivas que simulan fenómenos naturales y abstractos.
 
 ## 🌟 Características Principales
 
